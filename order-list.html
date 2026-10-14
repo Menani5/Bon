@@ -471,20 +471,46 @@
   </footer>
 </div>
 
-<script>
+ <script>
   function pad(n) { return String(n).padStart(2, "0"); }
 
+  // ---------------------------
+  // COUNTDOWN — starts at 2:00:00
+  // ---------------------------
+  var TOTAL_SECONDS = 2 * 60 * 60; // 7200 seconds = 2 hours
+  var remaining = TOTAL_SECONDS;
+  var timerId = null;
+  var clockEl = document.getElementById("clock");
+
   function renderClock() {
-    var now = new Date();
-    var h = now.getHours() % 12;
-    if (h === 0) h = 12;
-    document.getElementById("clock").textContent =
-      pad(h) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+    if (remaining < 0) remaining = 0;
+
+    var h = Math.floor(remaining / 3600);
+    var m = Math.floor((remaining % 3600) / 60);
+    var s = remaining % 60;
+
+    clockEl.textContent = pad(h) + ":" + pad(m) + ":" + pad(s);
+
+    if (remaining > 0) {
+      remaining--;
+    } else {
+      clearInterval(timerId);
+      timerId = null;
+    }
   }
 
-  renderClock();
-  setInterval(renderClock, 250);
+  function startCountdown() {
+    if (timerId) clearInterval(timerId);
+    remaining = TOTAL_SECONDS;
+    renderClock();
+    timerId = setInterval(renderClock, 1000);
+  }
 
+  startCountdown();
+
+  // ---------------------------
+  // UI interactions
+  // ---------------------------
   document.getElementById("navToggle").addEventListener("click", function () {
     document.getElementById("menu").classList.toggle("open");
   });
@@ -494,13 +520,16 @@
   });
 
   document.getElementById("refreshBtn").addEventListener("click", function () {
-    renderClock();
+    startCountdown(); // restart from 2:00:00
   });
 
   document.getElementById("invoiceBtn").addEventListener("click", function () {
     window.print();
   });
 
+  // ---------------------------
+  // Swipe to confirm
+  // ---------------------------
   (function () {
     var swipe = document.getElementById("swipe");
     var knob = document.getElementById("knob");
